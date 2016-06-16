@@ -47,9 +47,9 @@ where pie-chart is a function that just happens to already be defined in Killer 
 ```
 
 note that the final output of the pie-chart function is a data-model
-that would bind nicely to a pie-chart rendering done by percentage.(If
-you wanted it expressed in degrees you could use a divisor of 360
-instead of 100.)
+that would bind nicely to a pie-chart rendering done by
+percentage. (If you wanted it expressed in degrees you could use a
+divisor of 360 instead of 100.)
 
 Great - I hear you say, but what about this ESP thing that you keep
 harping on about. I'm not interested in static visualisation of data,
