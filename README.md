@@ -1,4 +1,4 @@
-# killer
+# Killer
 
 [![Continuous Integration status](https://secure.travis-ci.org/JulesGosnell/killer.png)](http://travis-ci.org/JulesGosnell/killer)
 
