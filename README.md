@@ -127,7 +127,9 @@ time.
 Since our ESP domain is expressed very similarly to the familiar
 domain of Clojure sequences, the learning curve to fully featured
 Event Stream Processing should be very flat for anyone familiar with
-Clojure or Functional Programming.
+Clojure or Functional Programming. Furthermore, since Killer is just a
+Clojure DSL it can be extended in any direction by just plugging in
+more Clojure functions (example to follow).
 
 I hope this gives a flavour of my hopes for Killer.
 
