@@ -47,7 +47,7 @@ where pie-chart is a function that just happens to already be defined in Killer 
     (into {} (map (fn [[k v]] [k (* (/ v n) whole)]) frequencies))))
 ```
 
-note that the final output of the pie-chart function is a data-model
+Note that the final output of the pie-chart function is a data-model
 that would bind nicely to a pie-chart rendering done by
 percentage. (If you wanted it expressed in degrees you could use a
 pie-chart 'whole' of 360 instead of 100.)
