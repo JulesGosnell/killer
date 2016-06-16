@@ -4,7 +4,8 @@
 
 Killer is Functional Event Stream Processing in Clojure with Transducers.
 
-Killer is a reiteration on DADA (Event Stream Processing in Clojure).
+Killer is a reiteration on
+[DADA](https://github.com/JulesGosnell/dada "Event Stream Processing in Clojure").
 
 Killer aims to build on everything that I learnt writing DADA whilst adding :
 
