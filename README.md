@@ -74,9 +74,19 @@ killer.transducers> s
 killer.transducers> (def f (sequence (esp-frequencies) s))
 #'killer.transducers/f
 killer.transducers> f
-({:a 1} {:a 1, :b 1} {:a 2, :b 1} {:a 2, :b 1, :c 1} {:a 2, :b 2, :c 1} {:a 3, :b 2, :c 1})
+({:a 1}
+ {:a 1, :b 1}
+ {:a 2, :b 1}
+ {:a 2, :b 1, :c 1}
+ {:a 2, :b 2, :c 1}
+ {:a 3, :b 2, :c 1})
 killer.transducers> (sequence (esp-pie-chart 100) f)
-({:a 100} {:a 50N, :b 50N} {:a 200/3, :b 100/3} {:a 50N, :b 25N, :c 25N} {:a 40N, :b 40N, :c 20N} {:a 50N, :b 100/3, :c 50/3})
+({:a 100}
+ {:a 50N, :b 50N}
+ {:a 200/3, :b 100/3}
+ {:a 50N, :b 25N, :c 25N}
+ {:a 40N, :b 40N, :c 20N}
+ {:a 50N, :b 100/3, :c 50/3})
 killer.transducers>
 ```
 
@@ -95,7 +105,12 @@ can be composed, meaning that no intermediate sequence is created:
 
 ```clojure
 killer.transducers> (sequence (comp (esp-frequencies)(esp-pie-chart 100)) s)
-({:a 100} {:a 50N, :b 50N} {:a 200/3, :b 100/3} {:a 50N, :b 25N, :c 25N} {:a 40N, :b 40N, :c 20N} {:a 50N, :b 100/3, :c 50/3})
+({:a 100}
+ {:a 50N, :b 50N}
+ {:a 200/3, :b 100/3}
+ {:a 50N, :b 25N, :c 25N}
+ {:a 40N, :b 40N, :c 20N}
+ {:a 50N, :b 100/3, :c 50/3})
 killer.transducers>
 ```
 
