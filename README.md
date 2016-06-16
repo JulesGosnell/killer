@@ -2,7 +2,7 @@
 
 [![Continuous Integration status](https://secure.travis-ci.org/JulesGosnell/killer.png)](http://travis-ci.org/JulesGosnell/killer)
 
-Killer is Functional [Event Stream Processing](https://en.wikipedia.org/wiki/Event_stream_processing) in [Clojure](https://clojure.org/) with [Transducers](http://clojure.org/reference/transducers).
+Killer is [Functional](https://en.wikipedia.org/wiki/Functional_programming) [Event Stream Processing](https://en.wikipedia.org/wiki/Event_stream_processing) in [Clojure](https://clojure.org/) with [Transducers](http://clojure.org/reference/transducers).
 
 Killer is a reiteration on
 [DADA](https://github.com/JulesGosnell/dada "Event Stream Processing in Clojure").
