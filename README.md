@@ -40,8 +40,9 @@ killer.transducers>
 where pie-chart is a function that just happens to already be defined in Killer as:
 
 ```clojure
-(defn- pie-chart [frequencies divisor]
-  "transform a hash-map of value:frequency to value:proportion using given divisor"
+(defn- pie-chart
+  "transform a hash-map of value:frequency to value:pie-slice-size for a given divisor"
+  [frequencies divisor]
   (let [n (apply + (vals frequencies))]
     (into {} (map (fn [[k v]] [k (* (/ v n) divisor)]) frequencies))))
 ```
@@ -49,7 +50,7 @@ where pie-chart is a function that just happens to already be defined in Killer 
 note that the final output of the pie-chart function is a data-model
 that would bind nicely to a pie-chart rendering done by
 percentage. (If you wanted it expressed in degrees you could use a
-divisor of 360 instead of 100.)
+pie-chart 'whole' of 360 instead of 100.)
 
 Great - I hear you say, but what about this ESP thing that you keep
 harping on about. I'm not interested in static visualisation of data,

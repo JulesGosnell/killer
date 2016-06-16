@@ -112,15 +112,16 @@
   []
   (esp-group-by identity (fn [vs v] (inc vs)) 0))
 
-(defn- pie-chart [frequencies divisor]
-  "transform a hash-map of value:frequency to value:proportion using given divisor"
+(defn- pie-chart
+  "transform a hash-map of value:frequency to value:proportion of a given whole"
+  [frequencies whole]
   (let [n (apply + (vals frequencies))]
-    (into {} (map (fn [[k v]] [k (* (/ v n) divisor)]) frequencies))))
+    (into {} (map (fn [[k v]] [k (* (/ v n) whole)]) frequencies))))
 
 (defn esp-pie-chart
   "live pie-charting of frequency of values seen"
-  [n]
-  (esp-stateless-reduce (fn [v] (pie-chart v n))[]))
+  [whole]
+  (esp-stateless-reduce (fn [v] (pie-chart v whole))[]))
 
 ;;------------------------------------------------------------------------------
 ;; simple values -> simple values
