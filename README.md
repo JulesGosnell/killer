@@ -60,9 +60,9 @@ of data, I want to see things moving around."
 OK.
 
 So now imagine that each of the functions that you used above could be
-realised as a Transducer which could be applied to a sequence and (in
-this simple case) to generate a new output each time a new input value
-arrived.
+realised as a transducer which could be applied to a sequence and (in
+this simple case) would generate a new output each time a new input
+value arrived.
 
 Then you might see something more like:
 
