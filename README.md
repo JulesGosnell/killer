@@ -61,8 +61,8 @@ OK.
 
 So now imagine that each of the functions that you used above could be
 realised as a transducer which could be applied to a sequence and (in
-this simple case) would generate a new output each time a new input
-value arrived.
+this simple case) would generate a new output each time it consumed an
+input value.
 
 Then you might see something more like:
 
