@@ -117,7 +117,7 @@ killer.transducers> (sequence (comp (esp-frequencies)(esp-pie-chart 100)) s)
 killer.transducers>
 ```
 
-Now, if we were to replace the sequences above with core.io/channels
+Now, if we were to replace the sequences above with core.async/channels
 (a standard transducer capability) and had a nice dynamic HTML5 UI to
 connect up, we would have real-time pie-chart-ing of our incoming data
 in a single line of Clojure - each input value culminating in a frame
