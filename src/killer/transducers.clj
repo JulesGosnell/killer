@@ -115,12 +115,12 @@
 (defn- pie-chart [frequencies divisor]
   "transform a hash-map of value:frequency to value:proportion using given divisor"
   (let [n (apply + (vals frequencies))]
-    (map (fn [[k v]] [k (* (/ v n) divisor)]) frequencies)))
+    (into {} (map (fn [[k v]] [k (* (/ v n) divisor)]) frequencies))))
 
 (defn esp-pie-chart
   "live pie-charting of frequency of values seen"
   [n]
-  (esp-stateless-reduce (fn [v] (into {} (pie-chart v n)))[]))
+  (esp-stateless-reduce (fn [v] (pie-chart v n))[]))
 
 ;;------------------------------------------------------------------------------
 ;; simple values -> simple values

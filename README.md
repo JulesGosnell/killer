@@ -33,8 +33,8 @@ killer.transducers> (def f (frequencies s))
 killer.transducers> f
 {:a 3, :b 2, :c 1}
 killer.transducers> (pie-chart f 100)
-([:a 50N] [:b 100/3] [:c 50/3])
-killer.transducers>
+{:a 50N, :b 100/3, :c 50/3}
+killer.transducers> 
 ```
 
 where pie-chart is a function that just happens to already be defined in Killer as:
@@ -43,7 +43,7 @@ where pie-chart is a function that just happens to already be defined in Killer 
 (defn- pie-chart [frequencies divisor]
   "transform a hash-map of value:frequency to value:proportion using given divisor"
   (let [n (apply + (vals frequencies))]
-    (map (fn [[k v]] [k (* (/ v n) divisor)]) frequencies)))
+    (into {} (map (fn [[k v]] [k (* (/ v n) divisor)]) frequencies))))
 ```
 
 note that the final output of the pie-chart function is a data-model
@@ -65,8 +65,11 @@ new output each time a new input value arrived.
 Then you might see something more like:
 
 ```clojure
+
 killer.transducers> (def s [:a :b :a :c :b :a])
 #'killer.transducers/s
+killer.transducers> s
+[:a :b :a :c :b :a]
 killer.transducers> (def f (sequence (esp-frequencies) s))
 #'killer.transducers/f
 killer.transducers> f
