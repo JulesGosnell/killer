@@ -1,0 +1,61 @@
+
+thoughts:
+
+- find a frontend toolkit that can handle live updstes to chrts and table - reuse it
+- can we move to core.async - what would we have to sacrifice ?
+
+- what should the dsl look like ?
+ - map, mapcat, filter, group-by, reduce
+
+- (map fn stream) -> stream
+
+- new element comes along, you call (fn) on it and put it on next stream
+- existing element comes along - you replace it in outgoing stream
+- element is deleted, you delete it in outgoing stream
+
+- how do we fit 3 fns into one such that
+ - performance is not compromised
+ - user does not have to write more code
+
+mapcat
+ - like map but if output consists of substreams they are joined together - how ?
+
+
+
+filter:
+ - do we differentiate between in and upsert ?
+- if new item passes filter we  it onto next stream
+- if old item passes filter we ...
+
+group-by
+- returns a stream of streams
+ - does it actually return a stream ?
+
+
+reduce:
+- does this produce a strem...
+
+
+looks like these operations are
+- stateful
+- hold a model
+- produce one or more streams...
+
+
+do we need streams or should we just raise events ?
+
+if we did the event raising thing a stream adapter would be very easy..
+
+there seems to be a fundamental question about multiplexing and
+dmultiplexing 2-3 types of event via a single channel....
+
+do we need to differentiate insert and upsert ?
+
+what is the difference between identity by key and by value ? is identity by value just a kef-function of identity and only a key column ?
+
+api should look as if we are just dealing with seqs, not streams, but...
+
+we should be able to combine ?processors? so that only a single iteration is done ? what does this mean ? feels right :-) - play with transducers...
+
+if you want to attach a ui component to a single stream coming out of a group-by, or a bunch of components to a bunch of substreams, what would the syntax look like ?
+
