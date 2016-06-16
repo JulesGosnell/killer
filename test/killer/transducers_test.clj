@@ -60,7 +60,7 @@
            actual (sequence (esp-group-by (fn [s] (.length s)) conj []) ["a" "b" "aa" "bb"])]
        (= actual expected))))
 
-  (testing "esp-frequency"
+  (testing "esp-frequencies"
     (is
      (let [expected [{1 1}
                      {1 1 2 1}
@@ -72,7 +72,7 @@
                      {1 3 2 2 3 2 4 1}
                      {1 3 2 3 3 2 4 1}
                      {1 4 2 3 3 2 4 1}]
-           actual (sequence (esp-frequency) [1 2 3 4 1 2 3 1 2 1])]
+           actual (sequence (esp-frequencies) [1 2 3 4 1 2 3 1 2 1])]
        (= actual expected))))
 
     (testing "esp-pie-chart"
@@ -87,7 +87,7 @@
                      {1 75/2, 2 25, 3 25, 4 25/2}
                      {1 100/3, 2 100/3, 3 200/9, 4 100/9}
                      {1 40, 2 30, 3 20, 4 10}]
-           actual (sequence (esp-pie-chart 100) [1 2 3 4 1 2 3 1 2 1])]
+           actual (sequence (comp (esp-frequencies)(esp-pie-chart 100)) [1 2 3 4 1 2 3 1 2 1])]
        (= actual expected))))
   
   ;; maths - more complex

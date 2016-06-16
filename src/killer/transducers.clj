@@ -107,7 +107,7 @@
        (assoc a k (f vs v))))
    {}))
 
-(defn esp-frequency
+(defn esp-frequencies
   "running table of frequencies of values seen"
   []
   (esp-group-by identity (fn [vs v] (inc vs)) 0))
@@ -120,9 +120,7 @@
 (defn esp-pie-chart
   "live pie-charting of frequency of values seen"
   [n]
-  (comp
-   (esp-frequency)
-   (esp-stateless-reduce (fn [v] (into {} (pie-chart v n)))[])))
+  (esp-stateless-reduce (fn [v] (into {} (pie-chart v n)))[]))
 
 ;;------------------------------------------------------------------------------
 ;; simple values -> simple values
@@ -177,7 +175,7 @@
     "running mode of values seen"
   []
   (comp
-   (esp-frequency)
+   (esp-frequencies)
    (esp-stateless-reduce mode nil)
    )
   )
