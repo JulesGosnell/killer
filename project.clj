@@ -5,7 +5,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [
                  [org.clojure/clojure "1.9.0-alpha7"]
-                 [org.clojure/core.async "0.2.374"]
+                 [org.clojure/core.async "0.2.382"]
                  ]
   :main ^:skip-aot killer.core
   :target-path "target/%s"
