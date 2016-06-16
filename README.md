@@ -60,14 +60,13 @@ I want to see things moving around.
 OK.
 
 So now imagine that each of the functions that you used above could be
-realised as a Transducer which could sit around a core.io/channel,
-sequence or pretty much anything and (in this simple case) generate a
-new output each time a new input value arrived.
+realised as a Transducer which could be applied to a sequence and (in
+this simple case) to generate a new output each time a new input value
+arrived.
 
 Then you might see something more like:
 
 ```clojure
-
 killer.transducers> (def s [:a :b :a :c :b :a])
 #'killer.transducers/s
 killer.transducers> s
@@ -90,12 +89,11 @@ killer.transducers> (sequence (esp-pie-chart 100) f)
  {:a 50N, :b 100/3, :c 50/3})
 killer.transducers>
 ```
-
 Here we imagine the same sequence of data arriving.
 
-This time however, esp-frequencies will consume the data
-element-by-element and produce a new result for aggregate input so far
-each time.
+This time however, esp-frequencies will consume its input
+element-by-element and output a complete new aggregate result as each
+input element is consumed.
 
 If we then imagine feeding the output of esp-frequencies into
 esp-pie-chart we can then see that this does something similar - for
@@ -105,6 +103,10 @@ Of course, as esp-frequencies and esp-pie-chart are transducers, they
 can be composed, meaning that no intermediate sequence is created:
 
 ```clojure
+killer.transducers> (def s [:a :b :a :c :b :a])
+#'killer.transducers/s
+killer.transducers> s
+[:a :b :a :c :b :a]
 killer.transducers> (sequence (comp (esp-frequencies)(esp-pie-chart 100)) s)
 ({:a 100}
  {:a 50N, :b 50N}
@@ -115,13 +117,17 @@ killer.transducers> (sequence (comp (esp-frequencies)(esp-pie-chart 100)) s)
 killer.transducers>
 ```
 
-Now, if we replace the sequences above with core.io/channels (a
-standard transducer capability) and had a nice dynamic HTML5 UI to
-connect up, we could have real-time pie-chart-ing of our incoming data
-in a single line of Clojure. Furthermore, because our ESP domain is
-expressed very similarly to the familiar domain of sequences, the
-learning curve to fully featured Event Stream Processing should be
-very flat for anyone familiar with Clojure or Functional Programming.
+Now, if we were to replace the sequences above with core.io/channels
+(a standard transducer capability) and had a nice dynamic HTML5 UI to
+connect up, we would have real-time pie-chart-ing of our incoming data
+in a single line of Clojure - each input value culminating in a frame
+in a pie-chart movie showing the evolution of the data-set over
+time.
+
+Since our ESP domain is expressed very similarly to the familiar
+domain of Clojure sequences, the learning curve to fully featured
+Event Stream Processing should be very flat for anyone familiar with
+Clojure or Functional Programming.
 
 I hope this gives a flavour of my hopes for Killer.
 
