@@ -41,10 +41,10 @@ where pie-chart is a function that just happens to already be defined in Killer 
 
 ```clojure
 (defn- pie-chart
-  "transform a hash-map of value:frequency to value:pie-slice-size for a given divisor"
-  [frequencies divisor]
+  "transform a hash-map of value:frequency to value:proportion of a given whole"
+  [frequencies whole]
   (let [n (apply + (vals frequencies))]
-    (into {} (map (fn [[k v]] [k (* (/ v n) divisor)]) frequencies))))
+    (into {} (map (fn [[k v]] [k (* (/ v n) whole)]) frequencies))))
 ```
 
 note that the final output of the pie-chart function is a data-model
