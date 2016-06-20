@@ -74,6 +74,11 @@
   [key-fn]
   (esp-reduce (fn [a v] (assoc a (key-fn v) v)) {}))
 
+(defn esp-apply
+  "running application of a function on values seen"
+  [f i]
+  (esp-stateless-reduce (fn [p] (apply f p)) i))
+
 ;;------------------------------------------------------------------------------
 ;; sequences -> simple values
 ;;------------------------------------------------------------------------------
@@ -116,6 +121,7 @@
   "transform a hash-map of value:frequency to value:proportion of a given whole"
   [frequencies whole]
   (let [n (apply + (vals frequencies))]
+    ;; TODO: we should be able to avoid an intermediate sequence here by using transducers ?
     (into {} (map (fn [[k v]] [k (* (/ v n) whole)]) frequencies))))
 
 (defn esp-pie-chart

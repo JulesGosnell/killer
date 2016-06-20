@@ -47,6 +47,12 @@
            actual (sequence (esp-hash-map (fn [s] (.length s))) ["a" "bb" "ccc" "dddd"])]
        (= actual expected))))
 
+  (testing "esp-apply"
+    (is
+     (let [expected [1 2 3 4]
+           actual (sequence (esp-apply + 0) [[1][1 1][1 2][2 2]])]
+       (= actual expected))))
+
   ;; sequences -  operations
 
   ;; sequences - transformations
