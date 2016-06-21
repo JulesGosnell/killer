@@ -1,0 +1,1 @@
+README: discuss the visualisation of intermediate models as an explanation of a final model.

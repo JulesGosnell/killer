@@ -1,20 +1,11 @@
 (ns killer.transducers)
 
+
 ;;------------------------------------------------------------------------------
 ;; private infrastructure
 
-(defn- esp-stateless-reduce
-  "running reduction of values seen"
-  [f i]
-  (fn [xf]
-    (fn
-      ([] (xf nil))
-      ([_] (xf nil))
-      ([result input]
-       (xf result (f input))))))
-
 (defn- esp-reduce
-  "running reduction of values seen"
+  "a stateful transducer producing a running reduction of values seen"
   [f i]
   (fn [xf]
     (let [accumulator (volatile! i)]
@@ -24,6 +15,11 @@
         ([result input]
          (vswap! accumulator (fn [a] (f a input)))
          (xf result @accumulator))))))
+
+(defn esp-apply
+  "running application of a function on values seen"
+  [f]
+  (map (fn [s] (apply f s))))
 
 ;;------------------------------------------------------------------------------
 ;; simple values -> simple values
@@ -51,33 +47,81 @@
   (esp-reduce conj i))
 
 (defn esp-vector
-    "running vector of values seen"
+  "running vector of values seen"
   []
-  (esp-reduce conj []))
+  (esp-conj []))
 
-(defn esp-window
-  "running fixed size sequence of values seen"
+;; N.B.
+;; esp-take-last is equivalent to the ESP idea of a "sliding window"
+;; of the last n values...
+
+;; naively:
+
+;; (defn esp-take-last
+;;   [n]
+;;   (comp
+;;    (esp-vector)
+;;    (map (fn [s] (take-last n s)))))
+
+;; more efficiently:
+
+(defn esp-take-last
   [n]
-  ;; TODO: use a better suited and therefore more efficient data-structure - maybe mutable - investigate
-  (esp-reduce (fn [a v] (conj (if (= (count a) n) (vec (rest a)) a) v)) [])
-  ;; needs to use a stack...
-  ;;(esp-reduce (fn [a v] (conj (if (= (count a) n) (pop a) a) v)) [])
-  )
+  (esp-reduce
+   (fn [a v] (conj (if (= (count a) n) (pop a) a) v))
+   (clojure.lang.PersistentQueue/EMPTY)))
+
+;; hmmm... introducing a window raises a whole host of issues...
+;; namely...
+
+;; it means that values can leave aswell as join a stream, so we need
+;; some way of representing deletion
+
+;; it means that downstream transducers should now expect a stream of
+;; vectors of values instead of a stream of values...
+;; re-evaluating an entire vector each time means expensive processing will be repeated over and over again
+;; so we need to move to a delta-ed model, but...
+
+;; aargh !!
 
 (defn esp-hash-set
   "running hash-set of values seen"
   []
   (esp-conj #{}))
 
+;; N.B.
+;; clojure.core/hash-map expects to be applied to a plist - this
+;; doesn't make much sense in an ESP context so esp-hash-map expects a
+;; stream of [k v] pairs.
 (defn esp-hash-map
+  "running hash-map of [k v]'s seen"
+  []
+  (esp-conj {}))
+
+;; N.B.
+;; hash-map-by doesn't exist in clojure.core, but I use the equivalent
+;; all the time in ESP - so let's pretend that it does...
+
+;; naively
+
+;; (defn esp-hash-map-by
+;;   "running hash-map of values seen"
+;;   [key-fn]
+;;   (comp
+;;    (map (fn [v] [(key-fn v) v]))
+;;    (esp-conj {}))
+;;   )
+
+;; more efficiently
+
+;; avoid intermdiate tuples
+(defn esp-hash-map-by
   "running hash-map of values seen"
   [key-fn]
-  (esp-reduce (fn [a v] (assoc a (key-fn v) v)) {}))
+  (esp-reduce (fn [a v] (assoc a (key-fn v) v)) {})
+  )
 
-(defn esp-apply
-  "running application of a function on values seen"
-  [f i]
-  (esp-stateless-reduce (fn [p] (apply f p)) i))
+;; SIMPLIFIED TO HERE
 
 ;;------------------------------------------------------------------------------
 ;; sequences -> simple values
@@ -85,23 +129,13 @@
 ;; sequences
 ;; sequence operations
 
-;; this 'last' expects each element of input to be a seq
-;; an alternate 'last' would have aggregate all inputs seen and taken the last one - not much point
-(defn esp-last
-  "running last of latest sequence seen"
-  []
-  (esp-stateless-reduce last nil))
-
 ;;------------------------------------------------------------------------------
 ;; sequences -> sequences
 ;;------------------------------------------------------------------------------
 ;; sequences -  transformations
 
-(defn esp-sort
-  "running sort of latest sequence seen"
-  []
-  (esp-stateless-reduce sort nil))
-  
+;; TODO: we should really be looking at a window/take-last, so does
+;; this make sense anymore ?
 (defn esp-group-by
   "running group-by of values seen"
   [key-fn f init]
@@ -127,7 +161,7 @@
 (defn esp-pie-chart
   "live pie-charting of frequency of values seen"
   [whole]
-  (esp-stateless-reduce (fn [v] (pie-chart v whole))[]))
+  (map (fn [v] (pie-chart v whole))))
 
 ;;------------------------------------------------------------------------------
 ;; simple values -> simple values
@@ -145,7 +179,7 @@
             new-sum (+ sum v)]
         [new-size new-sum  (/ new-sum new-size)]))
     [0 0 0])
-   (esp-last)))
+   (map last)))
 
 (defn- median [s]
   "return the median of a ordered sequence of numbers"
@@ -163,8 +197,8 @@
    ;; TODO: what we really want here is a sorted bag of some sort - investigate
    ;; maybe even a mutable java collection...
    (esp-vector)
-   (esp-sort)
-   (esp-stateless-reduce median nil)))
+   (map sort)
+   (map median)))
 
 
 (defn- mode [frequencies]
@@ -183,11 +217,43 @@
   []
   (comp
    (esp-frequencies)
-   (esp-stateless-reduce mode nil)
+   (map mode)
    )
   )
  
 ;;------------------------------------------------------------------------------
 
 ;; versioning could be a single transducer ?
+
+;;------------------------------------------------------------------------------
+
+;; THOUGHTS:
+
+;; often passing by value is too expensive and we want a stream of deltas...
+;; but not always...
+;; what we want is a stream that offers both possibilities but that would be all the expense of by value plus by-delta...
+
+;; what if we had a stream of [value-fn, delta-fn] ? i.e. the values were realised lazily...
+
+;; each superducer would receive a pair of fns and choose which one to call...
+
+;; e.g.
+
+;; we have window size 3
+;; last window was [1 2 3]
+;; we put a 4 on the stream
+;; we have (+) superducer on the stream
+;; it receives [-> [2 3 4], -> [delete: 1, upsert: 4]
+;; it can choose to take by value and sum up the whole value again
+;; it can choose to take by delta, substract 1 and add 4
+;; it will produce [-> 9, -> [delete: 6, upsert: 9]]
+
+;; downside - since work is done lazily, it will all happen on a single processor... maybe not true
+
+;; the first time a superducer receives an event it can call the by-value fn
+;; subsequently it can call the delta-fn
+;; should we make it a triple where the firt function returns meta data ?
+
+;; lets put deltas to one side for a while and focus on producing
+;; something that works, even if not very performant
 

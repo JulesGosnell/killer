@@ -4,6 +4,14 @@
 
 (deftest test-transducers
 
+  ;; higher order transducers
+  
+  (testing "esp-apply"
+    (is
+     (let [expected [1 2 3 4]
+           actual (sequence (esp-apply +) [[1][1 1][1 2][2 2]])]
+       (= actual expected))))
+
   ;; maths - simple
   
   (testing "esp-+"
@@ -26,10 +34,10 @@
            actual (sequence (esp-vector) '(1 2 3 4))]
        (= actual expected))))
 
-  (testing "esp-window"
+  (testing "esp-take-last"
     (is
      (let [expected [[1] [1 2] [1 2 3] [2 3 4] [3 4 5] [4 5 6] [5 6 7] [6 7 8] [7 8 9]]
-           actual (map sequence (sequence (esp-window 3) [1 2 3 4 5 6 7 8 9]))]
+           actual (map sequence (sequence (esp-take-last 3) [1 2 3 4 5 6 7 8 9]))]
        (= actual expected))))
   
   (testing "esp-hash-set"
@@ -38,19 +46,19 @@
            actual (sequence (esp-hash-set) [1 2 1 3 2])]
        (= actual expected))))
 
-  (testing "esp-hash-map - length:string"
+  (testing "esp-hash-map"
+    (is
+     (let [expected [{:a 1} {:a 1 :b 2} {:a 3 :b 2}{:a 3 :b 2 :c 4}]
+           actual (sequence (esp-hash-map) [[:a 1][:b 2][:a 3][:c 4]])]
+       (= actual expected))))
+
+  (testing "esp-hash-map-by - length:string"
     (is
      (let [expected [{1 "a"}
                      {1 "a" 2 "bb"}
                      {1 "a" 2 "bb" 3 "ccc"}
                      {1 "a" 2 "bb" 3 "ccc" 4 "dddd"}]
-           actual (sequence (esp-hash-map (fn [s] (.length s))) ["a" "bb" "ccc" "dddd"])]
-       (= actual expected))))
-
-  (testing "esp-apply"
-    (is
-     (let [expected [1 2 3 4]
-           actual (sequence (esp-apply + 0) [[1][1 1][1 2][2 2]])]
+           actual (sequence (esp-hash-map-by (fn [s] (.length s))) ["a" "bb" "ccc" "dddd"])]
        (= actual expected))))
 
   ;; sequences -  operations
@@ -81,7 +89,7 @@
            actual (sequence (esp-frequencies) [1 2 3 4 1 2 3 1 2 1])]
        (= actual expected))))
 
-    (testing "esp-pie-chart"
+  (testing "esp-pie-chart"
     (is
      (let [expected [{1 100}
                      {1 50, 2 50}
@@ -116,7 +124,7 @@
            actual (sequence (esp-mode) [1 2 3 4 1 2 3 1 2 1])]
        (= actual expected))))
 
-    )
+  )
 
 ;;------------------------------------------------------------------------------
 
