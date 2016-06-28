@@ -257,3 +257,32 @@
 ;; lets put deltas to one side for a while and focus on producing
 ;; something that works, even if not very performant
 
+;;==============================================================================
+;; lets try some tranducers driven by deltas
+;;==============================================================================
+
+(defrecord Upsertion [value])
+(defrecord Deletion [value])
+
+(defn- dd-reduce
+  [f i]
+  (fn [xf]
+    (let [accumulator (volatile! i)]
+      (fn
+        ([] (second (xf)))
+        ([result] (second (xf result)))
+        ([result input]
+         (vswap! accumulator (fn [a] (f a [(Upsertion. input)])))
+         (xf result (second @accumulator)))))))
+
+(defn dd-window
+  [n]
+  (esp-reduce
+   (fn [[a _] v]
+     (if (= (count a) n)
+       (let [d (first a)]
+         [(conj (pop a) v)
+          [(Deletion. d)(Upsertion. v)]])
+       [(conj a v)
+        [(->Upsertion v)]]))
+   [(clojure.lang.PersistentQueue/EMPTY) nil]))

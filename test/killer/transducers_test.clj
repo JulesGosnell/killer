@@ -135,3 +135,41 @@
 ;; - union
 ;; - etc...
 ;; ??
+
+;;------------------------------------------------------------------------------
+
+(deftest test-delta-transducers
+
+  (testing "dd-window"
+    (is
+     (let [expected [[(->Upsertion 1)][(->Upsertion 2)][(->Deletion 1)(->Upsertion 3)]]
+           actual (map second (sequence (dd-window 2) [1 2 3]))]
+       (= actual expected))))
+
+  )
+
+;;------------------------------------------------------------------------------
+;; some whales
+
+(def whales
+  [
+   "Blue Whale"
+   "Right Whale"
+   "Humpback Whale"
+   "Grey Whale"
+   "Minke Whale"
+   "Beluga Whale"
+   "Narwhal"
+   "Killer Whale"
+   "Sperm Whale"
+   "Pigmy Sperm Whale"
+   "Pilot Whale"
+   "Bottlenose Dolphin"
+   "Harbour Porpoise"
+   "Amazon River Dolphin"
+   "Spinner Dolphin"
+   "Dusky Dolphin"
+   "False Killer Whale"
+   "Yangtse River Dolphin"
+   ])
+
