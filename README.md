@@ -124,6 +124,18 @@ in a single line of Clojure - each input value culminating in a frame
 in a pie-chart movie showing the evolution of the data-set over
 time.
 
+I have now done this. If you clone this repo and type `lein start` at
+the top-level, you should soon see a couple of live donut-charts in
+your browser.
+
+Server side source code can be seen in src/killer/whales.clj and
+trades.clj.
+
+Client side src lives mainly in src/killer/donut.cljs which is a
+translation of some JavaScript that I found online.
+
+The Server Push infrastructure was borrowed from Sente.
+
 Since our ESP domain is expressed very similarly to the familiar
 domain of Clojure sequences, the learning curve to fully featured
 Event Stream Processing should be very flat for anyone familiar with
