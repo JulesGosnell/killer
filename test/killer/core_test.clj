@@ -1,7 +1,7 @@
 (ns killer.core-test
   (:require [clojure.core.async :as async]
             [clojure.test :refer :all]
-            [killer.core :refer :all]))
+            ))
 
 ;;------------------------------------------------------------------------------
 ;; utils
