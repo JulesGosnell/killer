@@ -128,8 +128,7 @@ I have now done this. If you clone this repo and type `lein start` at
 the top-level, you should soon see a couple of live donut-charts in
 your browser.
 
-![Alt text](https://raw.github.com/JulesGosnell/killer/master/doc/images/whales.png)
-![Alt text](https://raw.github.com/JulesGosnell/killer/master/doc/images/trades.png)
+![Alt text](https://raw.github.com/JulesGosnell/killer/master/doc/images/donuts.gif)
 
 Server side source code can be seen in src/killer/whales.clj and
 trades.clj.
