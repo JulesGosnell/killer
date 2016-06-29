@@ -10,7 +10,7 @@
                 *assert* true}
 
   :dependencies
-  [[org.clojure/clojure       "1.9.0-alpha7"]
+  [[org.clojure/clojure       "1.9.0-alpha8"]
    [org.clojure/clojurescript "1.9.89"]
    [org.clojure/core.async    "0.2.385"]
    [org.clojure/tools.nrepl   "0.2.12"] ; Optional, for Cider
@@ -56,9 +56,8 @@
                                 "lib/d3.v3.min.js"
                                 ;;"lib/d3.v4.0.0-rc.2.min.js"
                                 :provides ["d3"]}
-                               ;; {:file
-                               ;;  "lib/pie.js"
-                               ;;  :provides ["pie"]}
+                               {:file "lib/jquery-3.0.0.min.js" :provides ["jQuery"]}
+                               {:file "lib/jsgrid.min.js"       :provides ["jsgrid"]}
                                ]
                 :pretty-print true}}]}
   
