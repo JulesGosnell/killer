@@ -58,7 +58,7 @@
                      {1 "a" 2 "bb"}
                      {1 "a" 2 "bb" 3 "ccc"}
                      {1 "a" 2 "bb" 3 "ccc" 4 "dddd"}]
-           actual (sequence (esp-hash-map-by (fn [s] (.length s))) ["a" "bb" "ccc" "dddd"])]
+           actual (sequence (esp-hash-map-by (fn [^String s] (.length s))) ["a" "bb" "ccc" "dddd"])]
        (= actual expected))))
 
   ;; sequences -  operations
@@ -71,7 +71,7 @@
                      {1 ["a" "b"]}
                      {1  ["a" "b"] 2 ["aa"]}
                      {1  ["a" "b"] 2 ["aa" "bb"]}]
-           actual (sequence (esp-group-by (fn [s] (.length s)) conj []) ["a" "b" "aa" "bb"])]
+           actual (sequence (esp-group-by (fn [^String s] (.length s)) conj []) ["a" "b" "aa" "bb"])]
        (= actual expected))))
 
   (testing "esp-frequencies"
@@ -137,39 +137,142 @@
 ;; ??
 
 ;;------------------------------------------------------------------------------
+;; a transducer operates on a stream of values
+;; a hyperducer operates on a stream of tuples of an optional deletion and optional addition
 
-(deftest test-delta-transducers
+(def ->hyperduction (map (fn [e] [[][e]])))
+(def <-hyperduction (mapcat second))    ;can we just throw away deletions ?
 
-  (testing "dd-window"
+(deftest test-hyperduction
+
+  (testing "->hyperduction"
     (is
-     (let [expected [[(->Upsertion 1)][(->Upsertion 2)][(->Deletion 1)(->Upsertion 3)]]
-           actual (map second (sequence (dd-window 2) [1 2 3]))]
-       (= actual expected))))
+     (=
+      [[[][nil]] [[][1]] [[][2]] [[][3]]]
+      (sequence ->hyperduction [nil 1 2 3]))))
 
+  (testing "<-hyperduction"
+    (is
+     (= [nil 1 2 3]
+        (sequence <-hyperduction [[[][nil]] [[][1]] [[][2]] [[][3]]]))))
+
+  (testing "round-trip hyperduction"
+    (is
+     (= [nil 1 2 3]
+        (sequence (comp ->hyperduction <-hyperduction) [nil 1 2 3]))))
+
+  ;; ok - now what can we do with one...
+
+  ;; we can implement a sliding window - with values both entering one end and leaving at the other - as a hyper/transducer
+
+  (defn- superducer
+    [f i]
+    (fn [xf]
+      (let [accumulator (volatile! i)]
+        (fn
+          ([] (xf))
+          ([result] (xf result))
+          ([result input] (xf result (vswap! accumulator f input)))))))
+  
+  (testing "superduction"
+    (is
+     (= [1 3 6]
+        (sequence (superducer + 0) [1 2 3]))))
+
+  (defn- hyperducer
+    [f i]
+    (fn [xf]
+      (let [accumulator (volatile! i)]
+        (fn
+          ([] (xf))
+          ([result] (xf result))
+          ([result input]
+           (let [[tmp output] (f @accumulator input)]
+             (vreset! accumulator tmp)
+             (xf result output)))))))
+
+  (defn vor [a b] (if (empty? a) b (first a)))
+  
+  (defn commutative-hyperducer [fa fd i]
+    (hyperducer
+     (fn [acc [maybe-d maybe-a]]
+       (let [new-acc (fa (fd acc (vor maybe-d i)) (vor maybe-a i))]
+         [new-acc [[] [new-acc]]]))
+     i))
+  
+  (testing "commutative hyperduction"
+    (is
+     (= [[[][1]] [[][3]] [[][5]] [[][7]] [[][9]]]
+        (sequence
+         (commutative-hyperducer + - 0)
+         [[[][1]] [[][2]] [[1][3]] [[2][4]] [[3][5]]]))))
+
+  (defn hd-take-last
+    [n]
+    (hyperducer
+     (fn [old-a [_[v]]]
+       (let [[new-a deletion]
+             (if (= (count old-a) n)
+               [(pop old-a) [(first old-a)]]
+               [old-a []])]
+         [(conj new-a v) [deletion [v]]]))
+     (clojure.lang.PersistentQueue/EMPTY)))
+
+  (testing "hd-take-last"
+    (is
+     (=
+      [[[][nil]] [[][1]] [[nil][2]] [[1][3]]]
+      (sequence (comp ->hyperduction (hd-take-last 2)) [nil 1 2 3])
+      )
+     ))
+
+  (defn hd-sum [] (commutative-hyperducer + - 0))
+  
+  (testing "the superduction of the SUM of a sliding window size 2..."
+    (is
+     (= [1 3 5 7 9]
+        (sequence
+         (comp
+          ->hyperduction
+          (hd-take-last 2)
+          (hd-sum)
+          <-hyperduction)
+         [1 2 3 4 5]))))
+
+  (defn hd-product [] (commutative-hyperducer * / 1))
+  
+  (testing "the superduction of the PRODUCT of a sliding window size 2..."
+    (is
+     (= [1 2 6 12 20]
+        (sequence
+         (comp
+          ->hyperduction
+          (hd-take-last 2)
+          (hd-product)
+          <-hyperduction)
+         [1 2 3 4 5]))))
+
+  (defn non-commutative-hyperducer [fa fd i z]
+    (hyperducer
+     (fn [acc [maybe-d maybe-a]]
+       (let [new-acc (fa (fd acc (vor maybe-d z)) (vor maybe-a z))]
+         [new-acc [[] [new-acc]]]))
+     i))
+
+  (defn unmerge [m1 m2]
+    (reduce (fn [a [k v]] (if (= (a k) v) (dissoc a k))) m1 m2))
+
+  (testing "unmerging one map from another"
+    (is
+     (= {:a 1}
+        (unmerge {:a 1 :b 2 :c 3} {:b 2 :c 3}))))
+
+  ;; thinking about merge/unmerge of a hashmap ?
+
+  ;; thinking about hd-group-by and hd-frequencies...
+  
   )
 
-;;------------------------------------------------------------------------------
-;; some whales
-
-(def whales
-  [
-   "Blue Whale"
-   "Right Whale"
-   "Humpback Whale"
-   "Grey Whale"
-   "Minke Whale"
-   "Beluga Whale"
-   "Narwhal"
-   "Killer Whale"
-   "Sperm Whale"
-   "Pigmy Sperm Whale"
-   "Pilot Whale"
-   "Bottlenose Dolphin"
-   "Harbour Porpoise"
-   "Amazon River Dolphin"
-   "Spinner Dolphin"
-   "Dusky Dolphin"
-   "False Killer Whale"
-   "Yangtse River Dolphin"
-   ])
-
+;; TODO:
+;; batched hyperduction
+;; investigate category theory, groups, symmetric inverse semigroups etc...
