@@ -124,14 +124,14 @@ in a single line of Clojure - each input value culminating in a frame
 in a pie-chart movie showing the evolution of the data-set over
 time.
 
-I have now done this. If you clone this repo and type `lein start` at
-the top-level, you should soon see a couple of live donut-charts in
-your browser.
+The image below shows Killer's demo web page which contains a couple of
+Donut charts attached to data channels created in the way described
+above. Also a DataTable viewing the same trade data.
 
 ![Alt text](https://raw.github.com/JulesGosnell/killer/master/doc/images/donuts.gif)
 
-Server side source code can be seen in src/killer/whales.clj and
-trades.clj.
+Server side source code can be seen in src/killer/trades.clj and
+whales.clj.
 
 Client side src lives mainly in src/killer/donut.cljs which is a
 translation of some JavaScript that I found online.
