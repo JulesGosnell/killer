@@ -57,7 +57,7 @@
                                 ;;"lib/d3.v4.0.0-rc.2.min.js"
                                 :provides ["d3"]}
                                {:file "lib/jquery-3.0.0.min.js" :provides ["jQuery"]}
-                               {:file "lib/jsgrid.min.js"       :provides ["jsgrid"]}
+                               {:file "lib/jquery.dataTables.min.js" :requires ["jQuery"] :provides ["DataTable"]}
                                ]
                 :pretty-print true}}]}
   

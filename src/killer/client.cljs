@@ -12,8 +12,9 @@
    ;; Optional, for Transit encoding:
    [taoensso.sente.packers.transit :as sente-transit]
    [cljs.core.async :as async  :refer (<! >! put! chan)]
+
+   [killer.datatable :as datatable]
    [killer.donut :as donut]
-   [d3 :as d3]
    )
 
   (:require-macros
@@ -149,6 +150,9 @@
 (defmethod dispatch :default [[selector _]]
   (js/console.log "no dispatch method is available for selector:" selector))
 
+;;------------------------------------------------------------------------------
+;; donuts
+
 (.forEach
  (.querySelectorAll js/document "*[data-chart-type='donut']")
  (fn [e]
@@ -162,7 +166,25 @@
 
      (donut/render e 1000 c))))
    
-;;(donut/render (.getElementById js/document "donut") 1000 donut-channel)
+;;------------------------------------------------------------------------------
+;; datatable
+
+(.forEach
+ (.querySelectorAll js/document "*[data-chart-type='datatable']")
+ (fn [e]
+   (let [c (chan)
+         n (.getAttribute e "data-channel-name")]
+     
+     (js/console.log "creating datatable for: " n)
+     
+     (defmethod dispatch (keyword (str "killer" "/" n)) [[s message]]
+       (go (>! c (clj->js message))))
+
+     (datatable/render e 1000 c)
+
+     )))
+
+;;------------------------------------------------------------------------------
 
 (defonce _start-once (start!))
 

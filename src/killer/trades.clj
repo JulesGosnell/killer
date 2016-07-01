@@ -4,7 +4,27 @@
    [hiccup.core        :as hiccup]
    [killer.transducers :refer :all]))
 
-(def body [:div {:data-chart-type "donut" :data-channel-name "trades"}])
+(def body
+  [:div
+   [:div {:data-chart-type "donut" :data-channel-name "trades"}]
+
+   [:table {:class="display" :cellspacing="0" :width="100%" :data-chart-type "datatable" :data-channel-name "trades-table"}
+    
+    [:thead
+     [:tr
+      [:th "Currency"]
+      [:th "Total"]
+      ]
+     ]
+    [:tfoot
+     [:tr
+      [:th "Currency"]
+      [:th "Total"]
+      ]
+     ]
+    ]
+   ]
+  )
 
 (def currencies [:GBP :USD :EUR :JPY :CNY :AUD :NZD])
 (def amounts [25 50 75 100])
@@ -15,7 +35,10 @@
                        :value (random-element amounts)})
 
 (defn donut [s]
-  [:killer/trades (mapv (fn [[k v]] {:label k :value v}) s)])
+  [:killer/trades (mapv (fn [[k v]]
+                          {:label k :value v}
+                          ;;[k v]
+                          ) s)])
 
 (defn start []
   (let [c (chan

@@ -68,9 +68,16 @@
   (hiccup/html
 
    ;;------------------------------------------------------------------------------
+   [:head
 
-   [:style
-    "body {
+    ;; for datatables
+    [:link {:rel "stylesheet"
+            :type "text/css"
+            :href "https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css"}]
+
+    ;; for donuts
+    [:style
+     "body {
   font-family: \"Helvetica Neue\", Helvetica, Arial, sans-serif;
   width: 960px;
   height: 500px;
@@ -91,7 +98,7 @@ polyline{
 	fill: none;
 }
 
-"]  
+"]]  
    
    [:body
     
