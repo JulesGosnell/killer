@@ -49,4 +49,4 @@
       (do
         (>!! c (random-element whales))
         (Thread/sleep 1000))))
-  c))
+  [c]))

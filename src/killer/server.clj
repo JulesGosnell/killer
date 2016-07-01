@@ -166,10 +166,10 @@ polyline{
       (doseq [uid uids] (chsk-send! uid s))
       s)))
 
-(defn add-model [name html channel]
+(defn add-models [name html channels]
   (swap! models conj [name html])
-  (println @models)
-  (go-loop [_ nil] (let [m (<!! channel)] (broadcast! m)(recur nil))))
+  (doseq [channel channels]
+    (go-loop [_ nil] (let [m (<!! channel)] (broadcast! m)(recur nil)))))
 
 (defn start-example-broadcaster! []
 )

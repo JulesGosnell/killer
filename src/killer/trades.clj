@@ -57,4 +57,4 @@
       (do
         (>!! c (random-trade))
         (Thread/sleep 1000))))
-  c))
+  [c]))
