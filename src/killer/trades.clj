@@ -29,10 +29,8 @@
 (def currencies [:GBP :USD :EUR :JPY :CNY :AUD :NZD])
 (def amounts [25 50 75 100])
 
-(defn random-element [s] (nth s (rand-int (count s))))
-
-(defn random-trade [] {:currency (random-element currencies)
-                       :value (random-element amounts)})
+(defn random-trade [] {:currency (rand-nth currencies)
+                       :value (rand-nth amounts)})
 
 ;; transform data to fit donut chart
 (defn donut [s]
