@@ -151,38 +151,23 @@
   (js/console.log "no dispatch method is available for selector:" selector))
 
 ;;------------------------------------------------------------------------------
-;; donuts
+
+(def renderers {"donut"     (fn [e c] (donut/render e 1000 c))
+                "datatable" (fn [e c] (datatable/render e 1000 c))})
 
 (.forEach
- (.querySelectorAll js/document "*[data-chart-type='donut']")
+ (.querySelectorAll js/document "*[data-chart-type]")
  (fn [e]
    (let [c (chan)
+         t (.getAttribute e "data-chart-type")
          n (.getAttribute e "data-channel-name")]
 
-     (js/console.log "creating donut chart for: " n)
+     (js/console.log "creating " t " for: " n)
      
      (defmethod dispatch (keyword (str "killer" "/" n)) [[s message]]
        (go (>! c (clj->js message))))
 
-     (donut/render e 1000 c))))
-   
-;;------------------------------------------------------------------------------
-;; datatable
-
-(.forEach
- (.querySelectorAll js/document "*[data-chart-type='datatable']")
- (fn [e]
-   (let [c (chan)
-         n (.getAttribute e "data-channel-name")]
-     
-     (js/console.log "creating datatable for: " n)
-     
-     (defmethod dispatch (keyword (str "killer" "/" n)) [[s message]]
-       (go (>! c (clj->js message))))
-
-     (datatable/render e 1000 c)
-
-     )))
+     ((renderers t) e c))))
 
 ;;------------------------------------------------------------------------------
 

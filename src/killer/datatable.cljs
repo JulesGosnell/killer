@@ -9,7 +9,7 @@
 (defn render [root duration data-chan]
   (let [table (.DataTable (js/$ root) (js-obj))
         change (fn [rows]
-                 (js/console.log "TABLE:" table "ROWS:" rows)
+                 ;;(js/console.log "TABLE:" table "ROWS:" rows)
                  (.draw (.add (.-rows (.clear table)) rows))
                  )]
     

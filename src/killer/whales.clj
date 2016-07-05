@@ -4,6 +4,36 @@
    [hiccup.core        :as hiccup]
    [killer.transducers :refer :all]))
 
+(def headers
+  [
+   ;; for donuts
+
+   [:style
+    "body {
+  font-family: \"Helvetica Neue\", Helvetica, Arial, sans-serif;
+  width: 960px;
+  height: 500px;
+  position: relative;
+}
+svg{
+	width: 100%;
+	height: 100%;
+}
+path.slice{
+	stroke-width:2px;
+}
+
+polyline{
+	opacity: .3;
+	stroke: black;
+	stroke-width: 2px;
+	fill: none;
+}
+
+"]
+   ]
+  )
+
 (def body [:div {:data-chart-type "donut" :data-channel-name "whales"}])
 
 (def whales

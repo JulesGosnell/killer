@@ -69,40 +69,12 @@
 
    ;;------------------------------------------------------------------------------
    [:head
-
-    ;; for datatables
-    [:link {:rel "stylesheet"
-            :type "text/css"
-            :href "https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css"}]
-
-    ;; for donuts
-    [:style
-     "body {
-  font-family: \"Helvetica Neue\", Helvetica, Arial, sans-serif;
-  width: 960px;
-  height: 500px;
-  position: relative;
-}
-svg{
-	width: 100%;
-	height: 100%;
-}
-path.slice{
-	stroke-width:2px;
-}
-
-polyline{
-	opacity: .3;
-	stroke: black;
-	stroke-width: 2px;
-	fill: none;
-}
-
-"]]  
+    (mapcat (fn [[name [headers]]] headers) @models)
+    ]  
    
    [:body
     
-    (mapcat (fn [[name html]] [[:h1 (str "Model: " name)] html]) @models)
+    (mapcat (fn [[name [_ html]]] [[:h1 (str "Model: " name)] html]) @models)
           
     ;;------------------------------------------------------------------------------
     
@@ -166,8 +138,8 @@ polyline{
       (doseq [uid uids] (chsk-send! uid s))
       s)))
 
-(defn add-models [name html channels]
-  (swap! models conj [name html])
+(defn add-models [name headers body channels]
+  (swap! models conj [name [headers body]])
   (doseq [channel channels]
     (go-loop [_ nil] (let [m (<!! channel)] (broadcast! m)(recur nil)))))
 

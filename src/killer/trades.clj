@@ -4,6 +4,40 @@
    [hiccup.core        :as hiccup]
    [killer.transducers :refer :all]))
 
+(def headers
+  [
+   ;; for donuts
+
+   [:style
+    "body {
+  font-family: \"Helvetica Neue\", Helvetica, Arial, sans-serif;
+  width: 960px;
+  height: 500px;
+  position: relative;
+}
+svg{
+	width: 100%;
+	height: 100%;
+}
+path.slice{
+	stroke-width:2px;
+}
+
+polyline{
+	opacity: .3;
+	stroke: black;
+	stroke-width: 2px;
+	fill: none;
+}
+
+"]
+   ;; for datatables
+   [:link {:rel "stylesheet"
+           :type "text/css"
+           :href "https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css"}]
+   ]
+ )
+
 (def body
   [:div
    [:div {:data-chart-type "donut" :data-channel-name "trades-donut"}]
