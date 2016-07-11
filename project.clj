@@ -10,7 +10,7 @@
                 *assert* true}
 
   :dependencies
-  [[org.clojure/clojure       "1.9.0-alpha8"]
+  [[org.clojure/clojure       "1.9.0-alpha9"]
    ;;[org.clojure/clojure       "1.8.0"]
    [org.clojure/clojurescript "1.9.89"]
    [org.clojure/core.async    "0.2.385"]
