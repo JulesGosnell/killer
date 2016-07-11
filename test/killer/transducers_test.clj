@@ -276,3 +276,36 @@
 ;; TODO:
 ;; batched hyperduction
 ;; investigate category theory, groups, symmetric inverse semigroups etc...
+
+;;------------------------------------------------------------------------------
+
+;; lets see if we can write a join() hyperducer - needed for tasks like reconciliations
+
+;; this is fairly complex stuff, so I am going to think in Scala so I
+;; can use types (aargh - hypocrite !!)
+
+;; def join[L,R,K](
+;;     left: HyperChannel[L],
+;;     leftKeyFn: (L)=>K,
+;;     right: HyperChannel[R],
+;;     rightKeyFn: (R)=>K,
+;;     ):
+;;     (
+;;     joined: HyperChannel[(L, R)],
+;;     unjoinedLeft: HyperChannel[L],
+;;     unjoinedRight: HyperChannel[R],
+;;     ) = {
+;;     ...
+;;     }
+    
+;; - assumes strict ordering
+;; - maintains a Map[key: K, (leftValue: Option[L], rightValue: Option[R])]
+;; - when an item arrives from either right or left, we apply the relevant keyFn then look up the result in our map
+
+;; - we need to perform a swap on an atom and return a tuple of [optional-event-for-unjoined-left-channel, optional-event-for-unjoined-right-channel, optional-event-for-joined-channel, new value for atom]
+
+
+
+;; do we need to generate two of these functions ? one to work on the left channel and one to work on the right ?
+
+;; If we can get this working we should be able to use it reconcile transfers and orders\
