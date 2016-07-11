@@ -162,7 +162,7 @@
          t (.getAttribute e "data-chart-type")
          n (.getAttribute e "data-channel-name")]
 
-     (js/console.log "creating " t " for: " n)
+     (js/console.log "killer: creating" t "for" n)
      
      (defmethod dispatch (keyword (str "killer" "/" n)) [[s message]]
        (go (>! c (clj->js message))))
