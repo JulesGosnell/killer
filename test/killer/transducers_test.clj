@@ -270,6 +270,125 @@
   ;; thinking about merge/unmerge of a hashmap ?
 
   ;; thinking about hd-group-by and hd-frequencies...
+
+
+  ;; let's go crazy and try writing a join hyperducer...'
+
+  ;; we'll nee hswap!
+
+  (defn swap-first! [a f & args]
+    (loop []
+      (let [old-val @a
+            [new-val other] (apply f old-val args)]
+        (if (compare-and-set! a old-val new-val)
+          other
+          (recur)))))
+
+  (testing "swap-first!"
+    (let [a (atom 0)]
+      (is (= 1 (swap! a inc)))
+      (is (= "some other values" (swap-first! a (fn [i] [(inc i) "some other values"]))))
+      (is (= 2 @a))))
+
+
+  ;; this is fairly complex stuff, so I am going to think in Scala so I
+  ;; can use types (aargh - hypocrite !!)
+
+  ;; def join[L,R,K](
+  ;;     left: HyperChannel[L],
+  ;;     leftKeyFn: (L)=>K,
+  ;;     right: HyperChannel[R],
+  ;;     rightKeyFn: (R)=>K,
+  ;;     ):
+  ;;     (
+  ;;     joined: HyperChannel[(L, R)],
+  ;;     unjoinedLeft: HyperChannel[L],
+  ;;     unjoinedRight: HyperChannel[R],
+  ;;     ) = {
+  ;;     ...
+  ;;     }
+  
+
+  (defn zip-with-index [& seqs] (apply mapv (fn [& rest] rest) (range) seqs))
+
+  (testing "zip-with-index"
+    (is (= [[0 :a :A][1 :b :B][2 :c :C]] (zip-with-index [:a :b :c] [:A :B :C]))))
+
+  ;; WIP
+  
+  ;; (defn join-hyperducer [input-channel-and-keyfn-pairs output-channel]
+  ;;   (let [state (atom {})
+  ;;         n (count input-channel-and-keyfn-pairs)
+  ;;         default-val (vec (repeat n nil))]
+  ;;     ;; for each input channel and keyfn pair...
+  ;;     (map
+  ;;      (fn [[i [c kf]]]
+  ;;        ;;produce a transducer fn here that will do the necessary...
+  ;;        (map
+  ;;         (fn [xf]
+  ;;           (fn
+  ;;             ([] (xf))
+  ;;             ([result] (xf result))
+  ;;             ([result input]
+  ;;              (let [[output joined]    ;TODO: raise joined event to joined channel - somehow ?
+  ;;                    (swap-first!
+  ;;                     state
+  ;;                     (fn [s0 [maybe-d maybe-a]]
+  ;;                       (let [[s1 o1 j1]
+  ;;                             (if maybe-d
+  ;;                               (let [[d] maybe-d
+  ;;                                     k (kf d)
+  ;;                                     old-val (or (s0 k) default-val)
+  ;;                                     new-val (assoc old-val i nil)]
+  ;;                                 [(if (every? empty? new-val) (dissoc s0 k) (assoc s0 k new-val)) ;new state
+  ;;                                  (if (nth old-val i) nil [d]) ;deletion event for output channel
+  ;;                                  (if (every? (comp not empty?) old-val) [old-val] nil)]) ;deletion event for joined channel
+  ;;                               [s0 nil nil])
+  ;;                             [s2 o2 j2]
+  ;;                             (if maybe-a
+  ;;                               (let [[a] maybe-a
+  ;;                                     k (kf a)
+  ;;                                     old-val (or (s1 k) default-val)
+  ;;                                     new-val (assoc old-val i [a])] ;we store optional elements in state, so we can differentiate from user-space nils
+  ;;                                 [(assoc s1 k new-val)              ;new-state
+  ;;                                  (if (= (nth old-val i) a) nil [a]);addition event for output channel
+  ;;                                  (if (every? (comp not empty?) new-val) [new-val] nil);addition event for joined channel
+  ;;                                  ])
+  ;;                               [s1 nil nil])] 
+  ;;                         ;; we may have painted ourselves into a corner by implying that a hyperducer is a stream of pairs of SINGLE events :-(
+  ;;                         ;; should be (reduce foo state maybe-d) NOT (if maybe-d ...) - then we could handle event batches...
+  ;;                         [s2            ;new state for atom
+  ;;                          [[[o1 o2]]    ;deletion and addition for output stream
+  ;;                           [j1 j2]]])))]; deletion and addition for join stream
+  ;;                (xf result output)))))
+  ;;         c))
+  ;;      (zip-with-index input-channel-and-keyfn-pairs))))
+
+  ;; (testing "join-hyperducer"
+
+  ;;   (is
+  ;;    (=
+  ;;     nil
+  ;;     (mapv
+  ;;    sequence
+  ;;    (join-hyperducer
+  ;;     [
+  ;;      ;; left
+  ;;      [[[[][1]]
+  ;;        [[][2]]
+  ;;        [[][3]]]
+  ;;       identity]
+       
+       
+  ;;      ;; right
+  ;;      [[[[][1]]
+  ;;        [[][2]]
+  ;;        [[][3]]]
+  ;;       identity]
+  ;;      ]
+  ;;     nil                                ;output-channel - NYI
+  ;;     )))))
+
   
   )
 
@@ -281,23 +400,6 @@
 
 ;; lets see if we can write a join() hyperducer - needed for tasks like reconciliations
 
-;; this is fairly complex stuff, so I am going to think in Scala so I
-;; can use types (aargh - hypocrite !!)
-
-;; def join[L,R,K](
-;;     left: HyperChannel[L],
-;;     leftKeyFn: (L)=>K,
-;;     right: HyperChannel[R],
-;;     rightKeyFn: (R)=>K,
-;;     ):
-;;     (
-;;     joined: HyperChannel[(L, R)],
-;;     unjoinedLeft: HyperChannel[L],
-;;     unjoinedRight: HyperChannel[R],
-;;     ) = {
-;;     ...
-;;     }
-    
 ;; - assumes strict ordering
 ;; - maintains a Map[key: K, (leftValue: Option[L], rightValue: Option[R])]
 ;; - when an item arrives from either right or left, we apply the relevant keyFn then look up the result in our map
