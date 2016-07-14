@@ -316,53 +316,52 @@
 
   ;; WIP
   
-  ;; (defn join-hyperducer [input-channel-and-keyfn-pairs output-channel]
-  ;;   (let [state (atom {})
-  ;;         n (count input-channel-and-keyfn-pairs)
-  ;;         default-val (vec (repeat n nil))]
-  ;;     ;; for each input channel and keyfn pair...
-  ;;     (map
-  ;;      (fn [[i [c kf]]]
-  ;;        ;;produce a transducer fn here that will do the necessary...
-  ;;        (map
-  ;;         (fn [xf]
-  ;;           (fn
-  ;;             ([] (xf))
-  ;;             ([result] (xf result))
-  ;;             ([result input]
-  ;;              (let [[output joined]    ;TODO: raise joined event to joined channel - somehow ?
-  ;;                    (swap-first!
-  ;;                     state
-  ;;                     (fn [s0 [maybe-d maybe-a]]
-  ;;                       (let [[s1 o1 j1]
-  ;;                             (if maybe-d
-  ;;                               (let [[d] maybe-d
-  ;;                                     k (kf d)
-  ;;                                     old-val (or (s0 k) default-val)
-  ;;                                     new-val (assoc old-val i nil)]
-  ;;                                 [(if (every? empty? new-val) (dissoc s0 k) (assoc s0 k new-val)) ;new state
-  ;;                                  (if (nth old-val i) nil [d]) ;deletion event for output channel
-  ;;                                  (if (every? (comp not empty?) old-val) [old-val] nil)]) ;deletion event for joined channel
-  ;;                               [s0 nil nil])
-  ;;                             [s2 o2 j2]
-  ;;                             (if maybe-a
-  ;;                               (let [[a] maybe-a
-  ;;                                     k (kf a)
-  ;;                                     old-val (or (s1 k) default-val)
-  ;;                                     new-val (assoc old-val i [a])] ;we store optional elements in state, so we can differentiate from user-space nils
-  ;;                                 [(assoc s1 k new-val)              ;new-state
-  ;;                                  (if (= (nth old-val i) a) nil [a]);addition event for output channel
-  ;;                                  (if (every? (comp not empty?) new-val) [new-val] nil);addition event for joined channel
-  ;;                                  ])
-  ;;                               [s1 nil nil])] 
-  ;;                         ;; we may have painted ourselves into a corner by implying that a hyperducer is a stream of pairs of SINGLE events :-(
-  ;;                         ;; should be (reduce foo state maybe-d) NOT (if maybe-d ...) - then we could handle event batches...
-  ;;                         [s2            ;new state for atom
-  ;;                          [[[o1 o2]]    ;deletion and addition for output stream
-  ;;                           [j1 j2]]])))]; deletion and addition for join stream
-  ;;                (xf result output)))))
-  ;;         c))
-  ;;      (zip-with-index input-channel-and-keyfn-pairs))))
+  (defn join-hyperducer [keyfns output-channel]
+    (let [state (atom {})
+          n (count keyfns)
+          default-val (vec (repeat n nil))]
+      ;; for each input channel and keyfn pair...
+      (map
+       (fn [[i kf]]
+         ;;produce a transducer fn here that will do the necessary...
+         (map
+          (fn [xf]
+            (fn
+              ([] (xf))
+              ([result] (xf result))
+              ([result input]
+               (let [[output joined]    ;TODO: raise joined event to joined channel - somehow ?
+                     (swap-first!
+                      state
+                      (fn [s0 [maybe-d maybe-a]]
+                        (let [[s1 o1 j1]
+                              (if maybe-d
+                                (let [[d] maybe-d
+                                      k (kf d)
+                                      old-val (or (s0 k) default-val)
+                                      new-val (assoc old-val i nil)]
+                                  [(if (every? empty? new-val) (dissoc s0 k) (assoc s0 k new-val)) ;new state
+                                   (if (nth old-val i) nil [d]) ;deletion event for output channel
+                                   (if (every? (comp not empty?) old-val) [old-val] nil)]) ;deletion event for joined channel
+                                [s0 nil nil])
+                              [s2 o2 j2]
+                              (if maybe-a
+                                (let [[a] maybe-a
+                                      k (kf a)
+                                      old-val (or (s1 k) default-val)
+                                      new-val (assoc old-val i [a])] ;we store optional elements in state, so we can differentiate from user-space nils
+                                  [(assoc s1 k new-val)              ;new-state
+                                   (if (= (nth old-val i) a) nil [a]);addition event for output channel
+                                   (if (every? (comp not empty?) new-val) [new-val] nil);addition event for joined channel
+                                   ])
+                                [s1 nil nil])] 
+                          ;; we may have painted ourselves into a corner by implying that a hyperducer is a stream of pairs of SINGLE events :-(
+                          ;; should be (reduce foo state maybe-d) NOT (if maybe-d ...) - then we could handle event batches...
+                          [s2            ;new state for atom
+                           [[[o1 o2]]    ;deletion and addition for output stream
+                            [j1 j2]]])))]; deletion and addition for join stream
+                 (xf result output)))))))
+       (zip-with-index keyfns))))
 
   ;; (testing "join-hyperducer"
 
@@ -370,24 +369,20 @@
   ;;    (=
   ;;     nil
   ;;     (mapv
-  ;;    sequence
-  ;;    (join-hyperducer
-  ;;     [
-  ;;      ;; left
-  ;;      [[[[][1]]
+  ;;      (fn [hf s] (sequence hf s))
+  ;;      (join-hyperducer [identity identity] [])
+
+  ;;      [
+  ;;       ;; left
+  ;;       [[[][1]]
   ;;        [[][2]]
   ;;        [[][3]]]
-  ;;       identity]
-       
-       
-  ;;      ;; right
-  ;;      [[[[][1]]
+        
+  ;;       ;; right
+  ;;       [[[][1]]
   ;;        [[][2]]
-  ;;        [[][3]]]
-  ;;       identity]
-  ;;      ]
-  ;;     nil                                ;output-channel - NYI
-  ;;     )))))
+  ;;        [[][3]]]] 
+  ;;      ))))
 
   
   )
