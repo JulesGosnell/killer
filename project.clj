@@ -44,7 +44,7 @@
    ;;[com.cemerick/austin "0.1.6"]
    [lein-cljsbuild      "1.1.3"]
    [org.clojure/tools.nrepl "0.2.12"]
-   [cider/cider-nrepl   "0.12.0"] ; Optional, for use with Emacs
+   [cider/cider-nrepl   "0.13.0-SNAPSHOT"] ; Optional, for use with Emacs
    ]
 
   :cljsbuild
