@@ -315,75 +315,74 @@
     (is (= [[0 :a :A][1 :b :B][2 :c :C]] (zip-with-index [:a :b :c] [:A :B :C]))))
 
   ;; WIP
-  
-  (defn join-hyperducer [keyfns output-channel]
-    (let [state (atom {})
-          n (count keyfns)
-          default-val (vec (repeat n nil))]
-      ;; for each input channel and keyfn pair...
-      (map
-       (fn [[i kf]]
-         ;;produce a transducer fn here that will do the necessary...
-         (map
-          (fn [xf]
-            (fn
-              ([] (xf))
-              ([result] (xf result))
-              ([result input]
-               (let [[output joined]    ;TODO: raise joined event to joined channel - somehow ?
-                     (swap-first!
-                      state
-                      (fn [s0 [maybe-d maybe-a]]
-                        (let [[s1 o1 j1]
-                              (if maybe-d
-                                (let [[d] maybe-d
-                                      k (kf d)
-                                      old-val (or (s0 k) default-val)
-                                      new-val (assoc old-val i nil)]
-                                  [(if (every? empty? new-val) (dissoc s0 k) (assoc s0 k new-val)) ;new state
-                                   (if (nth old-val i) nil [d]) ;deletion event for output channel
-                                   (if (every? (comp not empty?) old-val) [old-val] nil)]) ;deletion event for joined channel
-                                [s0 nil nil])
-                              [s2 o2 j2]
-                              (if maybe-a
-                                (let [[a] maybe-a
-                                      k (kf a)
-                                      old-val (or (s1 k) default-val)
-                                      new-val (assoc old-val i [a])] ;we store optional elements in state, so we can differentiate from user-space nils
-                                  [(assoc s1 k new-val)              ;new-state
-                                   (if (= (nth old-val i) a) nil [a]);addition event for output channel
-                                   (if (every? (comp not empty?) new-val) [new-val] nil);addition event for joined channel
-                                   ])
-                                [s1 nil nil])] 
-                          ;; we may have painted ourselves into a corner by implying that a hyperducer is a stream of pairs of SINGLE events :-(
-                          ;; should be (reduce foo state maybe-d) NOT (if maybe-d ...) - then we could handle event batches...
-                          [s2            ;new state for atom
-                           [[[o1 o2]]    ;deletion and addition for output stream
-                            [j1 j2]]])))]; deletion and addition for join stream
-                 (xf result output)))))))
-       (zip-with-index keyfns))))
 
-  ;; (testing "join-hyperducer"
+  (def not-empty? (comp not empty?))
 
-  ;;   (is
-  ;;    (=
-  ;;     nil
+  (defn- join-hyperducer [state default-val index key-fn]
+    (fn [xf]
+      (fn
+        ([] (xf))
+        ([result] (xf result))
+        ([result input]
+         (let [[output joined]    ;TODO: raise joined event to joined channel - somehow ?
+               (swap-first!
+                state
+                (fn [s0 [maybe-d maybe-a]]
+                  (let [[s1 o1 j1]
+                        (if (not-empty? maybe-d)
+                          (let [[d] maybe-d
+                                k [(key-fn d)] ;; lift key, so we an support nil keys
+                                old-val (s0 k default-val)
+                                new-val (assoc old-val index nil)]
+                            [(if (every? empty? new-val) (dissoc s0 k) (assoc s0 k new-val)) ;new state
+                             (if (nth old-val index) nil [d]) ;deletion event for output channel
+                             (if (every? (comp not empty?) old-val) [old-val] nil)]) ;deletion event for joined channel
+                          [s0 nil nil])
+                        [s2 o2 j2]
+                        (if (not-empty? maybe-a)
+                          (let [[a] maybe-a
+                                k [(key-fn a)] ;; lift key, so we an support nil keys
+                                old-val (s1 k default-val)
+                                new-val (assoc old-val index [a]) ;; lift value, so we can support nil values
+                                joined (every? (comp not empty?) new-val)]
+                            [(assoc s1 k new-val)              ;new-state
+                             (if (= (nth old-val index) a) nil [a]);addition event for output channel
+                             (if joined [new-val] nil);addition event for joined channel
+                             ])
+                          [s1 nil nil])] 
+                    ;; we may have painted ourselves into a corner by implying that a hyperducer is a stream of pairs of SINGLE events :-(
+                    ;; should be (reduce foo state maybe-d) NOT (if maybe-d ...) - then we could handle event batches...
+                    [s2            ;new state for atom
+                     [[o1 o2]    ;deletion and addition for output stream
+                      [j1 j2]]]))
+                input)]; deletion and addition for join stream
+           (xf result output)))))    
+    )
+
+  (testing "join-hyperducer"
+
+    (is
+     (=
+      (sequence (join-hyperducer (atom {}) [nil] 0 identity) (sequence ->hyperduction  [1 2 3]))
+      [[nil [1]] [nil [2]] [nil [3]]]))
+
+    ;; (is
+    ;;  (=
+    ;;   (sequence (join-hyperducer (atom {1 [[1] nil] 2 [[2] nil] 3 [[3] nil]}) [nil nil] 1 identity) (sequence ->hyperduction  [1 2 3]))
+    ;;   [[nil [1]] [nil [2]] [nil [3]]]))
+
+    )
+
+
+  ;; ;; NYI
+  ;; (defn join-hyperducers [key-fns output-channel]
+  ;;   (let [state (atom {})
+  ;;         n (count keyfns)
+  ;;         default-val (vec (repeat n nil))]
   ;;     (mapv
-  ;;      (fn [hf s] (sequence hf s))
-  ;;      (join-hyperducer [identity identity] [])
-
-  ;;      [
-  ;;       ;; left
-  ;;       [[[][1]]
-  ;;        [[][2]]
-  ;;        [[][3]]]
-        
-  ;;       ;; right
-  ;;       [[[][1]]
-  ;;        [[][2]]
-  ;;        [[][3]]]] 
-  ;;      ))))
-
+  ;;      (fn [index key-fn] (join-hyperducer state default-val index key-fn))
+  ;;      (range)
+  ;;      key-fns)))
   
   )
 
