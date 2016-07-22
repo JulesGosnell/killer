@@ -333,6 +333,11 @@
 
   (def not-empty? (comp not empty?))
 
+  ;; let's try:
+
+  ;; we produce a join-hyperducer for each input channel
+  ;; each jh reads hyper-events and outputs a tuple of [hyper-event for output channel hyper-event for join channel]'
+  
   (defn- join-hyperducer [state default-val index key-fn]
     (fn [xf]
       (fn
@@ -364,7 +369,7 @@
                                 joined (every? (comp not empty?) new-val)]
                             [(assoc s1 k new-val)              ;new-state
                              (if (identical? old-val new-val) [nil nil] (if joined [[a] nil] [nil [a]]));addition event for output channel
-                             (if joined [nil new-val] [nil nil]);addition event for joined channel
+                             (if joined [nil (vec (flatten new-val))] [nil nil]);addition event for joined channel
                              ])
                           [s1 [nil nil] [nil nil]])] 
                     ;; we may have painted ourselves into a corner by implying that a hyperducer is a stream of pairs of SINGLE events :-(
@@ -373,7 +378,7 @@
                      [o2    ;deletion and addition for output stream
                       j2]]))
                 input)]; deletion and addition for join stream
-           (xf result output)))))    
+           (xf result [output joined])))))    
     )
 
   (testing "join-hyperducer - 3 insertions / 0 joins"
@@ -387,7 +392,13 @@
         identity               ;our key-fn
         )
        (sequence ->hyperduction  [1 2 3]))
-      [[nil [1]] [nil [2]] [nil [3]]])))
+      [[[nil [1]]
+        [nil nil]]
+       [[nil [2]]
+        [nil nil]]
+       [[nil [3]]
+        [nil nil]]
+       ])))
 
   (testing "join-hyperducer - 3 insertions / 3 joins"
     (is
@@ -399,7 +410,13 @@
         1                               ; we are the second stream
         identity                        ; our key-fn
         ) (sequence ->hyperduction  [1 2 3]))
-      [[[1] nil] [[2] nil] [[3] nil]])))
+      [[[[1] nil]
+        [nil [1 1]]]
+       [[[2] nil]
+        [nil [2 2]]]
+       [[[3] nil]
+        [nil [3 3]]]
+       ])))
     
 
   ;; ;; NYI
