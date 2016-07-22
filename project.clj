@@ -14,8 +14,6 @@
    ;;[org.clojure/clojure       "1.8.0"]
    [org.clojure/clojurescript "1.9.89"]
    [org.clojure/core.async    "0.2.385"]
-   [org.clojure/tools.nrepl   "0.2.12"] ; Optional, for Cider
-
    [com.taoensso/sente        "1.9.0-RC1"] ; <--- Sente
    [com.taoensso/timbre       "4.5.1"]
 
@@ -43,7 +41,6 @@
    [lein-ancient        "0.6.10"]
    ;;[com.cemerick/austin "0.1.6"]
    [lein-cljsbuild      "1.1.3"]
-   [org.clojure/tools.nrepl "0.2.12"]
    [cider/cider-nrepl   "0.13.0-SNAPSHOT"] ; Optional, for use with Emacs
    ]
 
