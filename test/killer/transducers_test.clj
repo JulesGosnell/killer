@@ -314,6 +314,21 @@
   (testing "zip-with-index"
     (is (= [[0 :a :A][1 :b :B][2 :c :C]] (zip-with-index [:a :b :c] [:A :B :C]))))
 
+  (defn vassoc [s i v]
+    "associate a value into e.g. a vector but return original vector if result would be same by value"
+    (if (= v (nth s i)) s (assoc s i v)))
+
+  (testing "vassoc"
+    (let [v1 [0 0 0]
+          v2 (vassoc v1 1 1)
+          v3 (vassoc v1 1 0)
+          v4 (assoc v1 1 0)]
+      (is (identical? v1 v1))
+      (is (not (identical? v1 v2)))
+      (is (identical? v1 v3))
+      (is (not (identical? v1 v4)))
+      ))
+  
   ;; WIP
 
   (def not-empty? (comp not empty?))
@@ -329,50 +344,63 @@
                 state
                 (fn [s0 [maybe-d maybe-a]]
                   (let [[s1 o1 j1]
-                        (if (not-empty? maybe-d)
-                          (let [[d] maybe-d
-                                k [(key-fn d)] ;; lift key, so we an support nil keys
-                                old-val (s0 k default-val)
-                                new-val (assoc old-val index nil)]
-                            [(if (every? empty? new-val) (dissoc s0 k) (assoc s0 k new-val)) ;new state
-                             (if (nth old-val index) nil [d]) ;deletion event for output channel
-                             (if (every? (comp not empty?) old-val) [old-val] nil)]) ;deletion event for joined channel
-                          [s0 nil nil])
+                        ;; (if (not-empty? maybe-d)
+                        ;;   (let [[d] maybe-d
+                        ;;         k [(key-fn d)] ;; lift key, so we an support nil keys
+                        ;;         old-val (s0 k default-val)
+                        ;;         new-val (assoc old-val index nil)
+                        ;;         joined (every? (comp not empty?) old-val)]
+                        ;;     [(if (every? empty? new-val) (dissoc s0 k) (assoc s0 k new-val)) ;new state
+                        ;;      (if (nth old-val index) nil [d]) ;deletion event for output channel
+                        ;;      (if (every? (comp not empty?) old-val) [old-val] nil)]) ;deletion event for joined channel
+                        [s0 [nil nil] [nil nil]]
+                        ;;   )
                         [s2 o2 j2]
                         (if (not-empty? maybe-a)
                           (let [[a] maybe-a
                                 k [(key-fn a)] ;; lift key, so we an support nil keys
                                 old-val (s1 k default-val)
-                                new-val (assoc old-val index [a]) ;; lift value, so we can support nil values
+                                new-val (vassoc old-val index maybe-a) ;; lift value, so we can support nil values
                                 joined (every? (comp not empty?) new-val)]
                             [(assoc s1 k new-val)              ;new-state
-                             (if (= (nth old-val index) a) nil [a]);addition event for output channel
-                             (if joined [new-val] nil);addition event for joined channel
+                             (if (identical? old-val new-val) [nil nil] (if joined [[a] nil] [nil [a]]));addition event for output channel
+                             (if joined [nil new-val] [nil nil]);addition event for joined channel
                              ])
-                          [s1 nil nil])] 
+                          [s1 [nil nil] [nil nil]])] 
                     ;; we may have painted ourselves into a corner by implying that a hyperducer is a stream of pairs of SINGLE events :-(
                     ;; should be (reduce foo state maybe-d) NOT (if maybe-d ...) - then we could handle event batches...
                     [s2            ;new state for atom
-                     [[o1 o2]    ;deletion and addition for output stream
-                      [j1 j2]]]))
+                     [o2    ;deletion and addition for output stream
+                      j2]]))
                 input)]; deletion and addition for join stream
            (xf result output)))))    
     )
 
-  (testing "join-hyperducer"
-
+  (testing "join-hyperducer - 3 insertions / 0 joins"
     (is
      (=
-      (sequence (join-hyperducer (atom {}) [nil] 0 identity) (sequence ->hyperduction  [1 2 3]))
-      [[nil [1]] [nil [2]] [nil [3]]]))
+      (sequence
+       (join-hyperducer
+        (atom {})              ;empty state
+        [nil nil]              ;we're joining 2 streams
+        0                      ;we are the first stream
+        identity               ;our key-fn
+        )
+       (sequence ->hyperduction  [1 2 3]))
+      [[nil [1]] [nil [2]] [nil [3]]])))
 
-    ;; (is
-    ;;  (=
-    ;;   (sequence (join-hyperducer (atom {1 [[1] nil] 2 [[2] nil] 3 [[3] nil]}) [nil nil] 1 identity) (sequence ->hyperduction  [1 2 3]))
-    ;;   [[nil [1]] [nil [2]] [nil [3]]]))
-
-    )
-
+  (testing "join-hyperducer - 3 insertions / 3 joins"
+    (is
+     (=
+      (sequence
+       (join-hyperducer
+        (atom {[1] [[1] nil] [2] [[2] nil] [3] [[3] nil]}) ; we've already read in some state - joins awaiting...
+        [nil nil]                       ; we are joining 2 streams
+        1                               ; we are the second stream
+        identity                        ; our key-fn
+        ) (sequence ->hyperduction  [1 2 3]))
+      [[[1] nil] [[2] nil] [[3] nil]])))
+    
 
   ;; ;; NYI
   ;; (defn join-hyperducers [key-fns output-channel]
