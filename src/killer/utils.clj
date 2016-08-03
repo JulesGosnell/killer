@@ -8,3 +8,6 @@
         other
         (recur)))))
 
+(defn vassoc [s i v]
+  "associate a value into e.g. a vector but return original vector if result would be same by value"
+  (if (= v (nth s i)) s (assoc s i v)))

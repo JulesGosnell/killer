@@ -116,7 +116,7 @@
         ])
      ]))
   
-(defn join-hyperducer2 [mf df keyfns]
+(defn join-hyperducer [mf df keyfns]
   (let [state (atom {})
         n (count keyfns)
         default-val (vec (repeat n nil))]

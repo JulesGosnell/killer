@@ -134,7 +134,7 @@
        [[2 (->Deletion :a)]]
        ]
       (sequence
-       (join-hyperducer2 vector identity [identity identity identity])
+       (join-hyperducer vector identity [identity identity identity])
        [
         [0 (->Addition :a)] ;; addition on left
         [1 (->Addition :a)] ;; addition in middle
