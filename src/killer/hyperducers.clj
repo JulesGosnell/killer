@@ -1,5 +1,6 @@
 (ns killer.hyperducers
   (:require
+   [clojure.data :refer :all]
    [killer.utils :refer :all]))
 
 ;;------------------------------------------------------------------------------
@@ -52,6 +53,37 @@
 ;; should take-last expect a hyperduction or transduction stream?
 
 ;; at the moment it expects a hyperduction stream of Additions ONLY - can't be right
+
+;;------------------------------------------------------------------------------
+;; poll-hyperducer
+
+;; input: sequence resulting from e.g. polling a resource
+;; output; a hyperduction describing the difference between this sequence and the last one
+  
+(defn hdiff [before after output-fn]
+  (let [[ds as] (diff before after)]
+    [after
+     (output-fn
+      (mapv (comp ->Deletion second) ds)
+      (mapv (comp ->Addition second) as))]))
+
+(defn poll-hyperducer [key-fn output-fn]
+  (let [state (atom {})]
+    (fn [xf]
+      (fn
+        ([]
+         (xf))
+        ([result]
+         (xf result))
+        ([result input]
+         (xf
+          result
+          (swap-first!
+           state
+           hdiff
+           (apply hash-map (mapcat (fn [v] [(key-fn v) v]) input))
+           output-fn
+           )))))))
 
 ;;------------------------------------------------------------------------------
 ;; join hyperducer

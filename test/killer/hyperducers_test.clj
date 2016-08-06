@@ -146,4 +146,31 @@
        )
       )))
 
+  (testing "poll-hyperducer"
+    (is
+     (=
+      [
+       #{(->Addition :a)
+         (->Addition :b)
+         (->Addition :c)}
+
+       #{(->Addition :d)}
+
+       #{(->Deletion :a)}
+
+       #{(->Deletion :b)
+         (->Addition :e)}
+       ]
+      (sequence
+       (poll-hyperducer identity (fn [v1 v2] (into (into #{} v1) v2)))
+       [
+        [:a :b :c]
+        [:a :b :c :d]
+        [:b :c :d]
+        [:c :d :e]
+        ]
+       )
+      )))
   )
+
+
