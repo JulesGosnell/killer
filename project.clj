@@ -43,7 +43,7 @@
    [lein-ancient        "0.6.10"]
    ;;[com.cemerick/austin "0.1.6"]
    [lein-cljsbuild      "1.1.3"]
-   [cider/cider-nrepl   "0.13.0"] ; Optional, for use with Emacs
+   [cider/cider-nrepl   "0.14.0-SNAPSHOT"] ; Optional, for use with Emacs
    ]
 
   :cljsbuild
