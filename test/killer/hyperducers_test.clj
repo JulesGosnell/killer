@@ -150,19 +150,19 @@
     (is
      (=
       [
-       #{(->Addition :a)
-         (->Addition :b)
-         (->Addition :c)}
+       [(->Addition :a)
+        (->Addition :b)
+        (->Addition :c)]
 
-       #{(->Addition :d)}
+       [(->Addition :d)]
 
-       #{(->Deletion :a)}
+       [(->Deletion :a)]
 
-       #{(->Deletion :b)
-         (->Addition :e)}
+       [(->Deletion :b)
+        (->Addition :e)]
        ]
       (sequence
-       (poll-hyperducer identity (fn [v1 v2] (into (into #{} v1) v2)))
+       (poll-hyperducer identity)
        [
         [:a :b :c]
         [:a :b :c :d]

@@ -1,6 +1,7 @@
 (ns killer.hyperducers
   (:require
    [clojure.data :refer :all]
+   [flatland.ordered.map :refer :all]
    [killer.utils :refer :all]))
 
 ;;------------------------------------------------------------------------------
@@ -60,15 +61,15 @@
 ;; input: sequence resulting from e.g. polling a resource
 ;; output; a hyperduction describing the difference between this sequence and the last one
   
-(defn hdiff [before after output-fn]
-  (let [[ds as] (diff before after)]
-    [after
-     (output-fn
-      (mapv (comp ->Deletion second) ds)
-      (mapv (comp ->Addition second) as))]))
+(defn- hdiff [before after]
+  [after
+   (concat
+    (mapv (comp ->Deletion second) (filter (fn [[k]] (not (contains? after k))) before))
+    (mapv (comp ->Addition second) (filter (fn [[k]] (not (contains? before k))) after)))])
 
-(defn poll-hyperducer [key-fn output-fn]
-  (let [state (atom {})]
+
+(defn poll-hyperducer [key-fn]
+  (let [state (atom (ordered-map))]
     (fn [xf]
       (fn
         ([]
@@ -78,12 +79,7 @@
         ([result input]
          (xf
           result
-          (swap-first!
-           state
-           hdiff
-           (apply hash-map (mapcat (fn [v] [(key-fn v) v]) input))
-           output-fn
-           )))))))
+          (swap-first! state hdiff (index-by ordered-map key-fn input))))))))
 
 ;;------------------------------------------------------------------------------
 ;; join hyperducer

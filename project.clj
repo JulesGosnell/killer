@@ -16,6 +16,7 @@
    [org.clojure/core.async    "0.2.385"]   ;https://github.com/clojure/core.async
    [com.taoensso/sente        "1.9.0-RC1"] ; <--- Sente
    [com.taoensso/timbre       "4.5.1"]
+   [org.flatland/ordered      "1.5.2"]  ; https://github.com/flatland/ordered
 
    ;;; TODO Choose (uncomment) a supported web server -----------------------
    [http-kit                             "2.2.0-beta1"] ; http://www.http-kit.org/
