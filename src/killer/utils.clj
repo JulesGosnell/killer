@@ -14,3 +14,14 @@
 
 (defn index-by [mf kf s]
   (apply mf (mapcat (fn [v] [(kf v) v]) s)))
+
+;;------------------------------------------------------------------------------
+;; anonymous multi-methods... - see tests
+
+(defn ^clojure.lang.MultiFn make-multifn [dispatch-fn]
+  (clojure.lang.MultiFn. nil dispatch-fn :default #'clojure.core/global-hierarchy))
+
+(defn make-method! [^clojure.lang.MultiFn mf dispatch-v f]
+  (.addMethod mf dispatch-v f))
+
+  

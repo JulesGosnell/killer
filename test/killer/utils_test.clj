@@ -22,4 +22,18 @@
       (is (not (identical? v1 v4)))
       ))
 
+  (testing "anonymous multi-methods"
+    (let [add-fn (make-multifn (fn [t & rest] (type t)))
+          del-fn (make-multifn (fn [t & rest] (type t)))]
+      (make-method! add-fn Long +)
+      (make-method! add-fn String str)
+      (make-method! del-fn Long -)
+      (make-method! del-fn String (fn [& rest] (apply str (reverse rest))))
+      (is (= (add-fn 0 1 2 3) 6))
+      (is (= (add-fn "a" "b" "c" "d" "e") "abcde"))
+      (is (= (del-fn 0 1 2 3) -6))
+      (is (= (del-fn "a" "b" "c" "d" "e") "edcba"))
+      ))
+        
+  
   )

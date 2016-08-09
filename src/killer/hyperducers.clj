@@ -5,7 +5,7 @@
    [killer.utils :refer :all]))
 
 ;;------------------------------------------------------------------------------
-;; a hyperducer operates on a stream/sequence of the following types:
+;; a hyperducer operates on a stream/sequence of sequences of the following types:
 
 (defrecord Addition [value])
 (defrecord Deletion [value])
@@ -83,6 +83,8 @@
 
 ;;------------------------------------------------------------------------------
 ;; join hyperducer
+
+;; TODO: use anonymous multmethods here...
 
 ;; returns [new-state events]
 (defmulti join (fn [state index join-index multiplex-function key-function default-val event] (type event)))
