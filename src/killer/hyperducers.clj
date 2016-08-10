@@ -85,7 +85,10 @@
 ;; join hyperducer
 
 ;; returns [new-state events]
-  
+
+;; hmmm - now supports partial joins but:
+;; what happens if we update an element invoved in a join ?
+;; what happens we form a partial join and then an element on a stream not yet involved in the join has a matching key ?
 (defn join-hyperducer [mf df keyfns]
   (let [state (atom {})
         n (count keyfns)
