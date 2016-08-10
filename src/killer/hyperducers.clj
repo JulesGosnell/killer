@@ -90,69 +90,66 @@
   (let [state (atom {})
         n (count keyfns)
         default-val (vec (repeat n nil))
+        join
+        (mfn
+         (fn [state index event] (type event))
+         [[Deletion
+           (fn [state index {deletion :value}]
+             (let [key ((nth keyfns index) deletion)
+                   old-val (or (state key) default-val)
+                   new-val (assoc old-val index nil)]
+               [
+                (if (every? empty? new-val)
+                  ;; this join is now completely empty - remove it from state
+                  (dissoc state key)
+                  ;; update state with new version of join
+                  (assoc state key new-val))
 
-        join (mfn
-              (fn [state index join-index multiplex-function key-function default-val event] (type event))
-
-              [[Deletion
-                (fn [state index join-index multiplex-function key-function default-val {deletion :value}]
-                  (let [key (key-function deletion)
-                        old-val (or (state key) default-val)
-                        new-val (assoc old-val index nil)]
-                    [
-                     (if (every? empty? new-val)
-                       ;; this join is now completely empty - remove it from state
-                       (dissoc state key)
-                       ;; update state with new version of join
-                       (assoc state key new-val))
-
-                     (if (every? (comp not empty?) old-val)
-                       ;; we are breaking an existing join...
-                       (conj
-                        ;; issue addition events for all channels except our own
-                        (mapv
-                         (fn [[i [v]]]
-                           (multiplex-function i (->Addition v)))
-                         (filter
-                          (fn [[i maybe-v]] (not (empty? maybe-v)))
-                          (mapv vector (range) new-val)))
-                        ;; issue deletion on join channel
-                        (multiplex-function join-index (->Deletion (flatten old-val)))
-                        )
-                       ;; we are not breaking an existing join
-                       [
-                        ;; issue a deletion event on our own channel
-                        (multiplex-function index (->Deletion deletion))
-                        ])
-                     ]))]
-               [Addition
-                (fn [state index join-index multiplex-function key-function default-val {addition :value}]
-                  (let [key (key-function addition)
-                        old-val (or (state key) default-val)
-                        new-val (assoc old-val index [addition])]
-                    [
-                     (assoc state key new-val)
-                     (if (every? (comp not empty?) new-val)
-                       ;; we are creating a new join
-                       (conj
-                        ;; issue deletion events for all channels for which we have a corresponding value
-                        (mapv
-                         (fn [[i [v]]]
-                           (multiplex-function i (->Deletion v)))
-                         (filter
-                          (fn [[i maybe-v]] (not (empty? maybe-v)))
-                          (mapv vector (range) old-val)))
-                        ;; issue addition on join-channel
-                        (multiplex-function join-index (->Addition (flatten new-val)))
-                        )
-                       ;; we aew not creating a new join
-                       [
-                        ;; issue an addition event on our own channel
-                        (multiplex-function index (->Addition addition))
-                        ])
-                     ]))]]
-              )
-        ]
+                (if (every? (comp not empty?) old-val)
+                  ;; we are breaking an existing join...
+                  (conj
+                   ;; issue addition events for all channels except our own
+                   (mapv
+                    (fn [[i [v]]]
+                      (mf i (->Addition v)))
+                    (filter
+                     (fn [[i maybe-v]] (not (empty? maybe-v)))
+                     (mapv vector (range) new-val)))
+                   ;; issue deletion on join channel
+                   (mf n (->Deletion (flatten old-val)))
+                   )
+                  ;; we are not breaking an existing join
+                  [
+                   ;; issue a deletion event on our own channel
+                   (mf index (->Deletion deletion))
+                   ])
+                ]))]
+          [Addition
+           (fn [state index {addition :value}]
+             (let [key ((nth keyfns index) addition)
+                   old-val (or (state key) default-val)
+                   new-val (assoc old-val index [addition])]
+               [
+                (assoc state key new-val)
+                (if (every? (comp not empty?) new-val)
+                  ;; we are creating a new join
+                  (conj
+                   ;; issue deletion events for all channels for which we have a corresponding value
+                   (mapv
+                    (fn [[i [v]]]
+                      (mf i (->Deletion v)))
+                    (filter
+                     (fn [[i maybe-v]] (not (empty? maybe-v)))
+                     (mapv vector (range) old-val)))
+                   ;; issue addition on join-channel
+                   (mf n (->Addition (flatten new-val)))
+                   )
+                  ;; we are not creating a new join
+                  [
+                   ;; issue an addition event on our own channel
+                   (mf index (->Addition addition))
+                   ])
+                ]))]])]
     (fn [xf]
       (fn
         ([]
@@ -161,7 +158,7 @@
          (xf result))
         ([result input]
          (let [[i v] (df input)]
-           (xf result (swap-first! state join i n mf (nth keyfns i) default-val v))))
+           (xf result (swap-first! state join i v))))
         ))))
 
 ;;------------------------------------------------------------------------------
