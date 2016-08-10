@@ -89,6 +89,7 @@
 (defn join-hyperducer [mf df keyfns]
   (let [state (atom {})
         n (count keyfns)
+        joins-needed n
         default-val (vec (repeat n nil))
         join
         (mfn
@@ -97,7 +98,7 @@
            (fn [state index {deletion :value}]
              (let [key ((nth keyfns index) deletion)
                    old-val (or (state key) default-val)
-                   new-val (assoc old-val index nil)]
+                   new-val (vassoc old-val index nil)]
                [
                 (if (every? empty? new-val)
                   ;; this join is now completely empty - remove it from state
@@ -105,10 +106,12 @@
                   ;; update state with new version of join
                   (assoc state key new-val))
 
-                (if (every? (comp not empty?) old-val)
+                (if (and
+                     (= (count-by (comp not empty?) old-val) joins-needed)
+                     (not (identical? old-val new-val)))
                   ;; we are breaking an existing join...
                   (conj
-                   ;; issue addition events for all channels except our own
+                   ;; issue addition events for all channels involved
                    (mapv
                     (fn [[i [v]]]
                       (mf i (->Addition v)))
@@ -128,10 +131,12 @@
            (fn [state index {addition :value}]
              (let [key ((nth keyfns index) addition)
                    old-val (or (state key) default-val)
-                   new-val (assoc old-val index [addition])]
+                   new-val (vassoc old-val index [addition])]
                [
                 (assoc state key new-val)
-                (if (every? (comp not empty?) new-val)
+                (if (and
+                     (= joins-needed (count-by (comp not empty?) new-val))
+                     (not (identical? old-val new-val)))
                   ;; we are creating a new join
                   (conj
                    ;; issue deletion events for all channels for which we have a corresponding value

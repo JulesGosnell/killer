@@ -41,5 +41,9 @@
                   [[Long +][String str]])]
       (is (= (add-fn 0 1 2 3) 6))
       (is (= (add-fn "a" "b" "c" "d" "e") "abcde"))
-      ))  
+      ))
+
+  (testing "count-by"
+    (is (= (count-by even? (range 9)) 5))
+    (is (= (count-by odd?  (range 9)) 4)))
   )
