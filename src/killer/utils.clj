@@ -24,4 +24,10 @@
 (defn make-method! [^clojure.lang.MultiFn mf dispatch-v f]
   (.addMethod mf dispatch-v f))
 
+(defn mfn [dispatch-fn dispatch-value-and-methods]
+  (let [mf (make-multifn dispatch-fn)]
+    (doseq [[dispatch-v method] dispatch-value-and-methods]
+      (make-method! mf dispatch-v method))
+    mf))
+
   

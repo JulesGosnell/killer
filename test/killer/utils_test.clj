@@ -35,5 +35,11 @@
       (is (= (del-fn "a" "b" "c" "d" "e") "edcba"))
       ))
         
-  
+  (testing "mfn"
+    (let [add-fn (mfn
+                  (fn [t & rest] (type t))
+                  [[Long +][String str]])]
+      (is (= (add-fn 0 1 2 3) 6))
+      (is (= (add-fn "a" "b" "c" "d" "e") "abcde"))
+      ))  
   )
